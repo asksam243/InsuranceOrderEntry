@@ -29,11 +29,20 @@ no longer VERIFY:**
   was wrong in the original version of this framework and is now corrected throughout
   (`auth.fixture.js`, `login.spec.js`).
 
+- Login page testids: `login-email-input`, `login-password-input`,
+  `login-submit-button` (confirmed from real page source) — note the button's visible
+  text is "Login" (one word), which the original `/log in|sign in/i` regex would have
+  missed entirely; `LoginPage.js` and `apiClient.js`'s `loginViaUI` now use the testids
+  directly instead of text matching.
+
 **Still genuinely unconfirmed** — run `grep -rn "VERIFY" --include="*.js" .` and check these first:
 
 - **`fixtures/applicationData.js`** — `productId`/`riderId` values are still placeholders.
   Confirm real IDs via `GET /api/products` and `GET /api/riders`.
-- **`pages/LoginPage.js`, `pages/*.js`** — field label regexes and `data-testid` strings
+- **`pages/LoginPage.js`** — error-message testids (`login-error-message`, field-level
+  errors, `account-locked-message`) and all MFA elements are still unconfirmed; only the
+  three input/button testids above have been seen directly.
+- **`pages/*.js`** (all other page objects) — field label regexes and `data-testid` strings
   still need a DevTools pass.
 - **`tests/workflow/application-submission.spec.js`** — the "Save Draft" button and the
   exact product-selection page sequence are still assumed.

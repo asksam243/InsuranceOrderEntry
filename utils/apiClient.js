@@ -41,9 +41,12 @@ function authHeaders() {
  */
 async function loginViaUI(page, baseURL, { email, password }) {
   await page.goto(`${baseURL}/login`);
-  await page.getByLabel(/email/i).fill(email);
-  await page.getByLabel(/password/i).fill(password);
-  await page.getByRole('button', { name: /log in|sign in/i }).click();
+  // CONFIRMED testids (same ones used in LoginPage.js) — the submit button's
+  // visible text is "Login" (one word), not "Log in"/"Sign in", so testid is
+  // used directly rather than a role/name regex.
+  await page.getByTestId('login-email-input').fill(email);
+  await page.getByTestId('login-password-input').fill(password);
+  await page.getByTestId('login-submit-button').click();
   // Either landing page confirms the session is established.
   await page.waitForURL(/\/(dashboard|applications\/[^/]+\/client)/);
   return page.context().request;
