@@ -111,9 +111,13 @@ function beneficiary({
   type = 'Individual',
   age = 30,
   guardianName,
+  // CONFIRMED real field (BR-BEN-007): defaults to Revocable so tests that
+  // don't care about designation don't accidentally trigger the Irrevocable
+  // legal-confirmation dialog in BeneficiaryPage.setDesignation().
+  designation = 'Revocable',
 } = {}) {
   const dob = isoDateYearsAgo(age);
-  const b = { firstName, lastName, relationship, allocationPercent, type, dateOfBirth: dob };
+  const b = { firstName, lastName, relationship, allocationPercent, type, dateOfBirth: dob, designation };
   if (age < 18) {
     b.guardianName = guardianName || 'Guardian ' + lastName;
   }

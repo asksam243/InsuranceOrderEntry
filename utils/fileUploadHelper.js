@@ -35,10 +35,11 @@ function createUnsupportedFile(filename = 'not-a-document.exe') {
 }
 
 /**
- * Oversized file for DOC-V03. Default 15MB — VERIFY the app's actual max
- * upload size limit and adjust so this is reliably over the threshold.
+ * Oversized file for DOC-V03. CONFIRMED (.env: DEMO_DOCUMENT_MAX_SIZE_MB=5):
+ * the real limit is 5MB, so 8MB is comfortably over the threshold without
+ * wastefully generating a much larger buffer than needed.
  */
-function createOversizedFile(filename = 'oversized-document.pdf', sizeMb = 15) {
+function createOversizedFile(filename = 'oversized-document.pdf', sizeMb = 8) {
   ensureDir();
   const filePath = path.join(tmpDir, filename);
   const buffer = Buffer.alloc(sizeMb * 1024 * 1024, 'A');

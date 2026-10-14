@@ -36,10 +36,14 @@ module.exports = {
     excessiveCoverageRider: { riderId: 'ADB', coverageAmount: '999999999' },
     waiverRiderA: 'WAIVER-DISABILITY', // VERIFY id
     waiverRiderB: 'WAIVER-UNEMPLOYMENT', // VERIFY id — mutually exclusive with A
+    // CONFIRMED (.env: DEMO_MAX_RIDERS_PER_APPLICATION=4): the real threshold is 4,
+    // not a guess. This list has 5 entries — one past the confirmed limit — so
+    // RIDER-V04 should trip the max-rider-count message on the 5th addition.
+    // Rider IDs themselves are still VERIFY — only the count is confirmed.
     maxRiderAttemptList: [
       'ADB', 'WAIVER-DISABILITY', 'CRITICAL-ILLNESS', 'CHILD-TERM',
-      'GUARANTEED-INSURABILITY', 'ACCELERATED-DEATH-BENEFIT',
-    ], // VERIFY actual max-count threshold in the live app before relying on this list length
+      'GUARANTEED-INSURABILITY',
+    ],
   },
 
   // Beneficiary edge cases (BEN-V02, V03, V05, V08).

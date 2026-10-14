@@ -7,35 +7,57 @@ beneficiary management, document upload, full application submission, and API va
 Built in plain JavaScript (CommonJS) with the Page Object Model, matching the conventions
 used in the companion FinServe Retail Demo Platform automation project.
 
-## ⚠️ Before you run anything: locator verification required
+## ⚠️ Before you run anything: locator verification still required (reduced scope)
 
-Every page object and several fixtures were written directly from the project's written
-functional spec (field names, button labels, route structure) — **not from inspecting the
-live application**, since it isn't available in this environment. Every assumed selector,
-field label, or business-rule constant is marked with a `VERIFY` comment. Run a search for
-them before trusting any test result:
+A batch of real platform documentation (Setup Guide, seeded-defect catalog, confirmed
+patch notes) has since resolved several items that were originally guesses. **Resolved,
+no longer VERIFY:**
 
-```bash
-grep -rn "VERIFY" --include="*.js" .
-```
+- Seeded accounts: `agent.valid/new/draft/submitted/locked/mfa@insurance.test`,
+  `admin@insurance.test`, and 30 `learner001..030@insurance.test` accounts all confirmed,
+  default password `Password@123`.
+- API auth: a static `X-API-Key` header (`qa-insurance-demo-token-123` by default), **not**
+  a bearer token from a login endpoint.
+- Base URL: `http://localhost:8081` on the shared combined lab VM (the Setup
+  Guide's own `:8000` is only the generic standalone-server default — this
+  app is reverse-proxied on `:8081` on the VM that also hosts FinServe on
+  `:8082`).
+- Rider max count: confirmed 4 (`DEMO_MAX_RIDERS_PER_APPLICATION`).
+- Document size limit: confirmed 5MB (`DEMO_DOCUMENT_MAX_SIZE_MB`).
+- Post-login redirect: agents land on `/applications/:id/client` (existing draft resumed,
+  or a new one auto-created) — **not** `/dashboard`. Only admin lands on `/dashboard`. This
+  was wrong in the original version of this framework and is now corrected throughout
+  (`auth.fixture.js`, `login.spec.js`).
 
-This is the same pattern that caught the FinServe `LoginPage` testid mismatch — expect to
-spend a first pass in DevTools confirming or correcting these before the suite is reliable.
-Highest-impact items to check first:
+**Still genuinely unconfirmed** — run `grep -rn "VERIFY" --include="*.js" .` and check these first:
 
-- **`fixtures/users.js`** — do all six seeded account types (valid, new, locked, MFA, admin,
-  invalid) actually exist for your cohort, and is email the login identifier?
-- **`fixtures/applicationData.js`** — `productId`/`riderId` values (`WL-STANDARD-001`, `ADB`,
-  `WAIVER-DISABILITY`, etc.) are placeholders. Confirm real IDs via `GET /api/products` and
-  `GET /api/riders` first, or every rider/product test will fail on a 404 rather than the
-  behavior being tested.
-- **`pages/LoginPage.js`, `pages/*.js`** — every field label regex (`getByLabel(/email/i)`,
-  etc.) and every `data-testid` string needs a DevTools check.
+- **`fixtures/applicationData.js`** — `productId`/`riderId` values are still placeholders.
+  Confirm real IDs via `GET /api/products` and `GET /api/riders`.
+- **`pages/LoginPage.js`, `pages/*.js`** — field label regexes and `data-testid` strings
+  still need a DevTools pass.
 - **`tests/workflow/application-submission.spec.js`** — the "Save Draft" button and the
-  exact page sequence (does product selection happen on `/products` first, or directly on
-  `/applications/:id/product`?) are assumed; confirm against the real flow.
-- **`utils/apiClient.js`** — assumes a bearer token returned from `POST /api/auth/login`.
-  If the app uses cookie-based sessions instead, this whole client needs reworking.
+  exact product-selection page sequence are still assumed.
+- **`utils/apiClient.js`** — whether agent-scoped endpoints (`/api/applications/...`) need
+  a session cookie *in addition to* the X-API-Key header, or whether the key alone is
+  sufficient for everything. `API-V08` assumes the former.
+- **Seeded-defect dependency, new and important**: this cohort may have specific defects
+  toggled on (`SELECT defect_code FROM seeded_defects WHERE is_active = 1`). A test failure
+  may be an intentional seeded bug, not a framework problem — check what's active before
+  debugging a failure as if it were your own mistake. The confirmed beginner-cohort set
+  (`DEF-AUTH-003`, `DEF-CLI-001`, `DEF-CLI-004`, `DEF-ADDR-001`, `DEF-CONTACT-001`,
+  `DEF-PROD-001/003`, `DEF-RIDER-001/003`, `DEF-BEN-001/003/005`, `DEF-DOC-002`,
+  `DEF-WF-002/005`) does **not** overlap with any of this framework's current 32 in-scope
+  tests except possibly `PROD-V03` and `RIDER-V02/V04` — confirm exact defect behavior
+  before assuming a failure there is a real bug worth logging.
+- **Draft-state isolation, new risk**: because login auto-resumes/creates a draft, running
+  the full E2E test (`WF-V03`) repeatedly against the same account reuses the same draft.
+  `newApplicationId` now defaults to a learner account instead of `agent.valid` for this
+  reason — confirm each learner account's draft is actually clean before a graded run, or
+  coordinate a `php artisan demo:reset` beforehand.
+- **Password governance risk**: if any seeded account has a stale `password_changed_at`
+  (>90 days) or a forced-reset flag, login will redirect to a change-password form instead
+  of the expected landing page. If `AUTH-V01` unexpectedly lands somewhere unexpected,
+  check this before assuming the test itself is broken.
 
 ## Setup
 

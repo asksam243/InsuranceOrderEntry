@@ -7,7 +7,7 @@ const { defineConfig, devices } = require('@playwright/test');
  * Copy .env.example to .env and fill in real values for your cohort's
  * hosted lab environment before running.
  */
-const BASE_URL = process.env.BASE_URL || 'http://localhost:8083';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:8081';
 
 module.exports = defineConfig({
   testDir: './tests',
